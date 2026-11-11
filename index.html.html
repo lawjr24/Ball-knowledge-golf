@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ball Knowledge Golf</title>
+<style>
+:root{--ink:#f5f7ee;--muted:#b8c9b7;--lime:#c9f36a;--deep:#10271f;--panel:#17372b;--line:#315844}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -10%,#315e40,#10251d 60%);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+.wrap{max-width:1100px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:16px}.brand{font-weight:950;letter-spacing:1.8px;font-size:clamp(22px,4vw,34px)}.brand span{color:var(--lime)}.pill{border:1px solid #53775b;border-radius:99px;padding:8px 12px;color:var(--lime);font-size:12px;font-weight:800;letter-spacing:1px}
+.layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,.85fr);gap:16px}.course,.side{background:#132e24;border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 18px 50px #06150f66}.course-head{display:flex;justify-content:space-between;align-items:center;padding:15px 18px;background:#1a3b2b}.course-head small{color:var(--muted);font-weight:800;letter-spacing:1px}.course-head strong{color:var(--lime)}canvas{display:block;width:100%;height:auto;aspect-ratio: 16/10;background:#6da45b}.course-foot{display:flex;justify-content:space-between;padding:12px 18px;color:var(--muted);font-size:12px}.side{padding:20px}.eyebrow{color:var(--lime);font-size:11px;letter-spacing:1.7px;font-weight:900}.question{font-size:clamp(20px,2.7vw,28px);line-height:1.2;font-weight:850;margin:12px 0 18px}.hint{font-size:13px;color:var(--muted);line-height:1.5}.answer{width:100%;padding:15px 14px;border-radius:12px;border:1px solid #4a7156;background:#0c2119;color:white;font-size:20px;font-weight:800;outline:none;margin:12px 0}.answer:focus{border-color:var(--lime);box-shadow:0 0 0 3px #c9f36a22}.btn{border:0;border-radius:12px;background:var(--lime);color:#14251a;font-size:15px;font-weight:950;padding:14px 18px;width:100%;cursor:pointer}.btn:disabled{opacity:.4;cursor:not-allowed}.feedback{margin-top:14px;padding:13px;border-radius:12px;background:#0b2118;border:1px solid var(--line);line-height:1.45}.feedback strong{color:var(--lime)}.score-title{margin:20px 0 10px;display:flex;justify-content:space-between;align-items:center}.score-title h3{font-size:13px;letter-spacing:1.3px;margin:0}.score{font-size:25px;font-weight:950;color:var(--lime)}.holes{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.hole{background:#0d241a;border:1px solid #2d4d38;border-radius:10px;padding:9px 6px;text-align:center}.hole b{display:block;font-size:12px}.hole small{color:var(--muted);font-size:10px}.hole.done{border-color:var(--lime);background:#213d27}.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.legend span{font-size:10px;color:var(--muted);background:#0c2119;padding:6px 8px;border-radius:7px}.result{font-size:22px;font-weight:950;color:var(--lime)}.hidden{display:none!important}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.wrap{padding:12px}.side{padding:17px}.top{margin-bottom:12px}}
+</style></head>
+<body><main class="wrap">
+<header class="top"><div class="brand">BALL <span>KNOWLEDGE</span> GOLF</div><div class="pill">DAILY 9 · ROUND #002</div></header>
+<div class="layout">
+<section class="course">
+ <div class="course-head"><div><small id="holeLabel">HOLE 1</small><div style="font-weight:900;font-size:18px">THE BACK NINE</div></div><strong id="parLabel">PAR 4</strong></div>
+ <canvas id="scene" width="960" height="600" aria-label="Illustrated golf hole with golfer, fairway, green, flag and ball"></canvas>
+ <div class="course-foot"><span id="yardage">428 YDS · PAR 4</span><span id="shotStatus">READY ON THE TEE</span></div>
+</section>
+<aside class="side">
+ <div id="playView"><div class="eyebrow" id="category">MLB · HOLE 1 OF 9</div><div class="question" id="question">Loading question…</div><div class="hint">Get as close as you can. Your answer becomes the shot — the closer you are, the closer your ball lands to the cup.</div>
+ <input class="answer" id="guess" type="number" inputmode="numeric" placeholder="Enter your number" autocomplete="off">
+ <button class="btn" id="hit">TAKE YOUR SHOT</button><div class="feedback hidden" id="feedback" aria-live="polite"></div><button class="btn hidden" id="next" style="margin-top:10px">NEXT HOLE →</button></div>
+ <div id="finalView" class="hidden"><div class="eyebrow">ROUND COMPLETE</div><div class="question">Daily Challenge #002 complete. You made it through all 9.</div><div class="result" id="finalScore"></div><p class="hint" id="finalMessage"></p><button class="btn" id="restart">PLAY ANOTHER ROUND</button></div>
+ <div class="score-title"><h3>SCORECARD</h3><div class="score" id="total">E</div></div><div class="holes" id="holes"></div>
+ <div class="legend"><span>🎯 Hole in One: exact</span><span>🦅 Eagle: 1–2 off</span><span>🐦 Birdie: 3–5 off</span><span>Par: 6–10 off</span><span>Bogey: 11–15 off</span><span>Double: 16–25 off</span><span>Triple+: 26+ off</span></div>
+</aside></div></main>
+<script>
+const questions=[
+ {sport:'MLB',q:'How many career home runs did Barry Bonds hit in the MLB regular season?',a:762,par:5,yards:552,source:'https://www.mlb.com/player/barry-bonds-111188',sourceName:'MLB.com'},
+ {sport:'NFL',q:'How many career passing yards did Tom Brady record in the NFL regular season?',a:89214,par:5,yards:575,source:'https://www.nfl.com/players/tom-brady/stats/career',sourceName:'NFL.com'},
+ {sport:'NBA',q:'How many career assists did John Stockton record in the NBA regular season?',a:15806,par:5,yards:561,source:'https://www.nba.com/stats/alltime-leaders?SeasonType=Regular+Season&StatCategory=AST',sourceName:'NBA.com'},
+ {sport:'NHL',q:'How many career regular-season points did Wayne Gretzky record?',a:2857,par:5,yards:590,source:'https://www.nhl.com/player/wayne-gretzky-8447400/stats',sourceName:'NHL.com'},
+ {sport:'SOCCER',q:'How many goals did Miroslav Klose score in FIFA World Cup tournaments?',a:16,par:3,yards:176,source:'https://www.fifa.com/en/articles/watch-miroslav-klose-goals-record',sourceName:'FIFA.com'},
+ {sport:'TENNIS',q:'How many Wimbledon men’s singles titles did Roger Federer win?',a:8,par:3,yards:188,source:'https://www.wimbledon.com/pdf/2025_Wimbledon_Compendium_W_250617.pdf',sourceName:'Wimbledon records'},
+ {sport:'OLYMPICS',q:'How many Olympic gold medals did Michael Phelps win?',a:23,par:4,yards:390,source:'https://www.olympedia.org/athletes/93860',sourceName:'Olympedia'},
+ {sport:'NBA',q:'What is the NBA record for most assists by one player in a single game?',a:30,par:4,yards:410,source:'https://api-hub.nba.com/news/most-assists-by-a-player-in-a-single-nba-game',sourceName:'NBA.com'},
+ {sport:'MLB',q:'How many stolen bases did Rickey Henderson record during the 1982 MLB season?',a:130,par:4,yards:428,source:'https://www.mlb.com/stories/rickey-henderson-career-timeline',sourceName:'MLB.com'}
+];
+let index=0,answers=[],locked=false,anim=null;const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d');
+function roundScore(d){return d===0?-3:d<=2?-2:d<=5?-1:d<=10?0:d<=15?1:d<=25?2:3}
+function label(d){return d===0?'HOLE IN ONE':d<=2?'EAGLE':d<=5?'BIRDIE':d<=10?'PAR':d<=15?'BOGEY':d<=25?'DOUBLE BOGEY':'TRIPLE BOGEY+'}
+function total(){return answers.reduce((s,x)=>s+x.score,0)}
+function drawCourse(ballX=190,ballY=475,flight=false,swingT=0){let w=960,h=600;ctx.clearRect(0,0,w,h);
+ // sky and distant tree line
+ let sky=ctx.createLinearGradient(0,0,0,600);sky.addColorStop(0,'#a9d9c1');sky.addColorStop(.42,'#e0e6b3');sky.addColorStop(1,'#7fb36a');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+ ctx.fillStyle='#477b49';for(let i=0;i<24;i++){let x=i*44-15,hh=55+(i*37%55);ctx.beginPath();ctx.arc(x,210,hh,0,Math.PI*2);ctx.fill()}
+ // fairway perspective
+ ctx.fillStyle='#4d9852';ctx.beginPath();ctx.moveTo(300,600);ctx.lineTo(390,300);ctx.quadraticCurveTo(500,230,610,300);ctx.lineTo(850,600);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#69ad5d';ctx.beginPath();ctx.moveTo(350,600);ctx.lineTo(420,325);ctx.quadraticCurveTo(500,275,570,325);ctx.lineTo(790,600);ctx.closePath();ctx.fill();
+ // mowing stripes
+ ctx.globalAlpha=.16;ctx.strokeStyle='#e1ed9c';ctx.lineWidth=18;for(let i=0;i<7;i++){ctx.beginPath();ctx.moveTo(380+i*55,590);ctx.lineTo(435+i*19,330);ctx.stroke()}ctx.globalAlpha=1;
+ // green
+ ctx.fillStyle='#a5cb69';ctx.beginPath();ctx.ellipse(510,310,115,44,-.04,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#d5e69a';ctx.lineWidth=3;ctx.stroke();
+ // sand bunker and water
+ ctx.fillStyle='#e6d5a0';ctx.beginPath();ctx.ellipse(680,335,62,23,-.2,0,Math.PI*2);ctx.fill();ctx.fillStyle='#3b9caa';ctx.beginPath();ctx.ellipse(260,365,65,28,.15,0,Math.PI*2);ctx.fill();
+ // flag and cup
+ ctx.fillStyle='#233e2c';ctx.beginPath();ctx.ellipse(520,319,13,5,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#f5f4dd';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(520,318);ctx.lineTo(520,218);ctx.stroke();ctx.fillStyle='#ed5948';ctx.beginPath();ctx.moveTo(522,220);ctx.lineTo(581,234);ctx.lineTo(522,248);ctx.closePath();ctx.fill();
+ // golfer silhouette on tee
+ ctx.save();ctx.translate(175,435);ctx.fillStyle='#18372c';ctx.strokeStyle='#18372c';ctx.lineCap='round';ctx.lineWidth=11;
+ ctx.beginPath();ctx.arc(0,-74,17,0,Math.PI*2);ctx.fill();ctx.lineWidth=17;ctx.beginPath();ctx.moveTo(-2,-54);ctx.lineTo(0,5);ctx.stroke();ctx.lineWidth=12;ctx.beginPath();ctx.moveTo(0,-38);ctx.lineTo(35,-18);ctx.stroke();ctx.beginPath();ctx.moveTo(-1,-35);ctx.lineTo(-28,-10);ctx.stroke();ctx.lineWidth=14;ctx.beginPath();ctx.moveTo(0,5);ctx.lineTo(-24,55);ctx.moveTo(0,5);ctx.lineTo(25,55);ctx.stroke();
+ // club and arms move through a swing
+ let ang=-1.0+swingT*3.7, gx=35+Math.cos(ang)*48, gy=-18+Math.sin(ang)*48;ctx.strokeStyle='#18372c';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(0,-38);ctx.lineTo(gx,gy);ctx.stroke();ctx.strokeStyle='#dce7d1';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(gx,gy);ctx.lineTo(gx+Math.cos(ang)*95,gy+Math.sin(ang)*95);ctx.stroke();ctx.restore();
+ // tee and ball
+ ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(ballX,ballY,9,6,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#d9e6d8';ctx.lineWidth=1;ctx.stroke();
+ // yardage marker
+ ctx.fillStyle='#18372c';ctx.font='bold 17px system-ui';ctx.fillText('PIN',538,199);
+ if(flight){ctx.strokeStyle='#fff8d2';ctx.lineWidth=3;ctx.setLineDash([8,9]);ctx.beginPath();ctx.moveTo(190,475);ctx.quadraticCurveTo(355,90,ballX,ballY);ctx.stroke();ctx.setLineDash([])}
+}
+function animateShot(d){if(anim)cancelAnimationFrame(anim);let t0=null;const duration=1150;function frame(t){if(!t0)t0=t;let p=Math.min(1,(t-t0)/duration),ease=1-Math.pow(1-p,2);let miss=Math.min(d,35),targetX=520+Math.sign((index%2)-.5)*miss*7,targetY=319+miss*2;let x=190+(targetX-190)*ease,y=475+(targetY-475)*ease-Math.sin(p*Math.PI)*Math.max(55,190-miss*3);drawCourse(x,y,true,p);if(p<1)anim=requestAnimationFrame(frame);else{drawCourse(targetX,targetY,false);$('shotStatus').textContent='BALL LANDED · '+label(d)}}anim=requestAnimationFrame(frame)}
+function render(){let q=questions[index];$('holeLabel').textContent='HOLE '+(index+1);$('parLabel').textContent='PAR '+q.par;$('yardage').textContent=q.yards+' YDS · PAR '+q.par;$('category').textContent=q.sport.toUpperCase()+' · HOLE '+(index+1)+' OF 9';$('question').textContent=q.q;$('guess').value='';$('feedback').classList.add('hidden');$('next').classList.add('hidden');$('hit').classList.remove('hidden');$('hit').disabled=false;$('shotStatus').textContent='READY ON THE TEE';drawCourse();renderScore()}
+function renderScore(){let h=$('holes');h.innerHTML='';for(let i=0;i<9;i++){let el=document.createElement('div');el.className='hole'+(answers[i]?' done':'');el.innerHTML='<b>HOLE '+(i+1)+'</b><small>'+(answers[i]?answers[i].label:'—')+'</small>';h.appendChild(el)}let s=total();$('total').textContent=s>0?'+'+s:s===0?'E':s}
+$('hit').onclick=()=>{if(locked)return;let val=$('guess').value;if(val===''||!Number.isFinite(Number(val)))return;locked=true;let q=questions[index],diff=Math.abs(Number(val)-q.a),sc=roundScore(diff),lab=label(diff);answers[index]={guess:Number(val),diff,score:sc,label:lab};$('hit').disabled=true;$('hit').classList.add('hidden');animateShot(diff);$('feedback').classList.remove('hidden');$('feedback').innerHTML='<strong>'+lab+'</strong><br>Correct answer: '+q.a.toLocaleString()+' · You were '+diff.toLocaleString()+' away.<br>Hole score: '+(sc>0?'+'+sc:sc===0?'Even':sc)+' strokes<br><a href="'+q.source+'" target="_blank" rel="noopener noreferrer" style="color:#c9f36a;font-weight:800;display:inline-block;margin-top:7px">Verify answer · '+q.sourceName+' ↗</a>';$('next').classList.remove('hidden');$('next').textContent=index===8?'VIEW FINAL SCORE →':'NEXT HOLE →';renderScore()};
+$('next').onclick=()=>{locked=false;if(index<8){index++;render()}else{finish()}};
+function finish(){ $('playView').classList.add('hidden');$('finalView').classList.remove('hidden');let s=total();$('finalScore').textContent=(s>0?'+'+s:s===0?'EVEN PAR':s+' UNDER PAR');$('finalMessage').textContent=s<=-9?'Absolutely elite ball knowledge. You were dialed in.':s<=0?'Solid round. You know your sports.': 'Back to the range. The next round is yours.';renderScore()}
+$('restart').onclick=()=>{index=0;answers=[];locked=false;$('finalView').classList.add('hidden');$('playView').classList.remove('hidden');render()};$('guess').addEventListener('keydown',e=>{if(e.key==='Enter')$('hit').click()});render();
+</script></body></html>
